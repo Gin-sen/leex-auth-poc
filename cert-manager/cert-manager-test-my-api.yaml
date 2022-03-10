@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: my-api.placesm-portfolio.fr
+  namespace: my-simple-api
+spec:
+  secretName: my-api.placesm-portfolio.fr-tls
+  issuerRef:
+    name: letsencrypt-staging-cluster-issuer
+    kind: ClusterIssuer
+  commonName: my-api.placesm-portfolio.fr
+  dnsNames:
+  - my-api.placesm-portfolio.fr

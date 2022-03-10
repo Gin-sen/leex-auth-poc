@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: auth
+spec:
+  selector:
+    matchLabels:
+      app: postgres # doit correspondre à .spec.template.metadata.labels
+  serviceName: postgres-jdbc
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: postgres
+          image: postgres
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: root
+              mountPath: /var/lib/postgresql/data
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            # The name of the PostgreSQL user, that will be used from the Keycloak
+            - name: POSTGRES_USER
+              value: keycloak
+            # The password for the PostgreSQL user, that will be used from the Keycloak
+            - name: POSTGRES_PASSWORD
+              value: keycloak-password
+      serviceAccountName: postgres
+  volumeClaimTemplates:
+    - metadata:
+        name: root
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-jdbc
+  namespace: auth
+  labels:
+    app: postgres
+spec:
+  ports:
+  - port: 5432
+  type: ClusterIP
+  selector:
+    app: postgres
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: postgres
+  namespace: auth
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: postgres
+    

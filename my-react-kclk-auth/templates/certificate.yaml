@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: my-react-kclk-auth.placesm-portfolio.fr
+  namespace: my-react-kclk-auth
+  labels:
+    {{- include "my-react-kclk-auth.labels" . | nindent 4 }}
+spec:
+  secretName: my-react-kclk-auth.placesm-portfolio.fr-tls
+  issuerRef:
+    name: letsencrypt-prod-cluster-issuer
+    kind: ClusterIssuer
+  commonName: my-react-kclk-auth.placesm-portfolio.fr
+  dnsNames:
+  - my-react-kclk-auth.placesm-portfolio.fr

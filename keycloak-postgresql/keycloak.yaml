@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-keycloak
+  namespace: auth
+  labels:
+    app: my-keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-keycloak
+  template:
+    metadata:
+      labels:
+        app: my-keycloak
+    spec:
+      containers:
+      - name: my-keycloak
+        image: jboss/keycloak
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PROXY_ADDRESS_FORWARDING
+          value: "true"
+        - name: DB_VENDOR
+          value: "postgres"
+        # The PostgreSQL user
+        - name: DB_USER
+          value: "keycloak"
+        # The PostgreSQL user's password
+        - name: DB_PASSWORD
+          value: "keycloak-password"
+        # The PostgreSQL database address: "<postgres-service-name>"."<namespace>"
+        - name: DB_ADDR
+          value: "postgres-jdbc.auth"
+        # The Keycloak user, which will be used for the Keycloak "Admin Console"
+        - name: KEYCLOAK_USER
+          value: "admin"
+        # The Keycloak user's password
+        - name: KEYCLOAK_PASSWORD
+          value: "admin"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-keycloak
+  namespace: auth
+  labels:
+    app: my-keycloak
+spec:
+  ports:
+  - port: 8080
+  type: ClusterIP
+  selector:
+    app: my-keycloak
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/issuer: "letsencrypt-prod-cluster-issuer"
+  name: my-keycloak
+  namespace: auth
+spec:
+  ingressClassName: "nginx"
+  tls:
+  # Replace the placeholder with your domain name (e.g. ingress.dev.blog.shoot.canary.k8s-hana.ondemand.com)
+  - hosts:
+    - my-keycloak.placesm-portfolio.fr
+    secretName: my-keycloak.placesm-portfolio.fr-tls
+  rules:
+    # Replace the placeholder with your domain name (e.g. ingress.dev.blog.shoot.canary.k8s-hana.ondemand.com)
+    - host: my-keycloak.placesm-portfolio.fr
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: my-keycloak
+                port:
+                  number: 8080

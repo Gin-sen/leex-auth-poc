@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: my-react-ms-auth.placesm-portfolio.fr
+  namespace: my-react-ms-auth
+spec:
+  secretName: my-react-ms-auth.placesm-portfolio.fr-tls
+  issuerRef:
+    name: letsencrypt-prod-cluster-issuer
+    kind: ClusterIssuer
+  commonName: my-react-ms-auth.placesm-portfolio.fr
+  dnsNames:
+  - my-react-ms-auth.placesm-portfolio.fr
